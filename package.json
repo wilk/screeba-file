@@ -1,0 +1,27 @@
+{
+  "name": "screeba-file",
+  "version": "0.0.0",
+  "description": "File transport for Screeba",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/wilk/screeba-file"
+  },
+  "keywords": [
+    "screeba",
+    "file",
+    "transport",
+    "logger"
+  ],
+  "author": "Vincenzo (Wilk) Ferrari <wilk3ert@gmail.com>",
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "gitHead": "2c0dc69439efe007b51cfd2b94ff2470dcba462a",
+  "dependencies": {
+    "colors": "~0.6.2",
+    "q": "~1.0.1"
+  }
+}
