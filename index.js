@@ -1,7 +1,7 @@
 'use strict';
 
-var colors = require('colors'),
-    util = require('util'),
+var _ = require('lodash'),
+    colors = require('colors'),
     fs = require('fs'),
     q = require('q');
 
@@ -25,6 +25,8 @@ function FileTransport (configs) {
     me.levels = configs.levels || [];
     me.timestamp = configs.timestamp || true;
     me.colorize = configs.colorize || true;
+    me.prettyprint = configs.prettyprint || false;
+    me.indentation = configs.indentation || 4;
     me.colors = {
         info: 'green',
         warning: 'yellow',
@@ -46,25 +48,65 @@ function FileTransport (configs) {
      */
     me.log = function (level, message, metadata, callback, deferred) {
         deferred = deferred || q.defer();
+        callback = typeof callback === 'function' ? callback : function () {};
 
         if (me.levels.length === 0 || (me.levels.length > 0 && me.levels.indexOf(level) > -1)) {
-            var prefix = me.timestamp ? ('[' + (new Date()).toJSON() + ' - ' + level + ']: ') : ('[' + level + ']: '),
-                msg = prefix + message;
+            var msg = {
+                    level: level,
+                    message: message
+                },
+                msgStringified = '';
 
-            if (metadata) msg += ' ' + util.inspect(metadata);
-            if (me.colorize && me.colors[level].length > 0) msg = msg[me.colors[level]];
+            if (me.timestamp) msg.timestamp = new Date();
+            if (metadata) msg.metadata = metadata;
+            if (me.colorize && me.colors[level].length > 0) msg.color = me.colors[level];
 
-            fs.writeFile(me.filename, msg, function (err) {
+            if (me.prettyprint) msgStringified += JSON.stringify(msg, null, me.indentation);
+            else msgStringified += JSON.stringify(msg);
+
+            // @todo: problem writing json file in json format. first read, then write json. use stream or something faster
+            fs.appendFile(me.filename, msgStringified + ",\n", function (err) {
                 if (err) {
-                    if (typeof callback === 'function') callback(err);
+                    callback(err);
                     deferred.reject(err);
                 }
                 else {
-                    if (typeof callback === 'function') callback(null, msg);
+                    callback(null, msg);
                     deferred.resolve(msg);
                 }
             });
         }
+
+        return deferred.promise;
+    };
+
+    /**
+     * It queries logs
+     * @param {Object} query An object containing the query
+     * @param {Function} callback A callback function called after querying
+     * @returns {Promise} A promise resolved or rejected by every transport (it depends on each transport implementation)
+     */
+    me.query = function (query, callback, deferred) {
+        deferred = deferred || q.defer();
+        callback = typeof callback === 'function' ? callback : function () {};
+
+        fs.readFile(me.filename, {encoding: 'utf8'}, function (err, data) {
+            if (err) {
+                callback(err);
+                deferred.reject(err);
+            }
+            else {
+                var dataString = data || '';
+                dataString = dataString.trim().substr(0, dataString.length - 2);
+                dataString = '[' + dataString + ']';
+
+                var dataObject = JSON.parse(dataString),
+                    results = _.find(dataObject, query);
+
+                callback(null, results);
+                deferred.resolve(results);
+            }
+        });
 
         return deferred.promise;
     };
