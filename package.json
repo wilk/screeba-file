@@ -1,6 +1,6 @@
 {
   "name": "screeba-file",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "File transport for Screeba",
   "main": "index.js",
   "scripts": {
@@ -22,6 +22,7 @@
   "gitHead": "2c0dc69439efe007b51cfd2b94ff2470dcba462a",
   "dependencies": {
     "colors": "~0.6.2",
-    "q": "~1.0.1"
+    "q": "~1.0.1",
+    "lodash": "~2.4.1"
   }
 }
